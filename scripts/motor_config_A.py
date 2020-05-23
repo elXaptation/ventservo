@@ -6,7 +6,7 @@ enableofflinePos = 33
 ## Motion Control
 servo_state = "disable"
 steps_per_revolution = 1600
-servo_angle = 50
+servo_angle = 55
 inspiratory_rate = .002
 expiratory_rate = .005
 inspiratory_hold = .25
