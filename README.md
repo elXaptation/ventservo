@@ -217,6 +217,6 @@ $ rosservice call /ventservo_srv_state "type: 'enable'"
   - Extend servo_ctl to use ROS-Serial for motor-drive functionality/thread (drive motor with arduino, not RPi CPU)
   - Enhance inspiration/expiration logic for non-linear stepping rates(curves).
   - Make motor position publisher configurable.
-  - Make on the fly config param changes work predictably.
+  - Make on the fly config param changes work predictably without need to disable/enable.
   - Make config parameter float numbers unsigned. For now don't use negative values, don't know what it'll do.
   
