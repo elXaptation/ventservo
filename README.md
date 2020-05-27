@@ -1,33 +1,32 @@
 # ventservo
-Ventservo is Emergency Ventilator motor contol package. It's created as a Robot Operating System (ROS) package. Its capable of controlling a reversible hybrid-stepper/servo motor mechanisim. I've used this package to control an Ambu-bag based emergency ventilator. In theory, different types of ventilator mechanisims can be contolled if they use a reversible motor mechanisim.
+Ventservo is Emergency Ventilator motor contol package. It's created as a Robot Operating System (ROS) package. Its capable of controlling a reversible hybrid-stepper/servo motor mechanisim. I use this package to control an Ambu-bag based emergency ventilator. In theory, different types of ventilator mechanisims can be contolled if they use a reversible motor mechanisim.
 
 ## Description
-Ventservos intention is to provide motor control as a service. Whereby more sophisticated robotics softwares can handle more elaborate/sophisticated aspects of running a ventilator. This is a base functionality to enable better ventilator applications. The ventservo project is writen in python and is composed of two parts.
+Ventservos intention is to provide ventilator motor control as a service. Whereby more sophisticated robotics softwares can handle more elaborate/sophisticated aspects of running a ventilator. This is a base functionality to enable better ventilator applications. The ventservo project is writen in python and is composed of two parts.
 
-### servo_ctl.py
+### - servo_ctl.py
 A self contained python script that implements the status, state and configuration servers that drive the motor movements via GPIO on the first thread and a motorposition publisher on a second thread.
 
-### motor_config.py
+### - motor_config_A.py
 A start-up configuration file that is specified as a command line argument at rosnode start up (rosrun). The actual name doesn't matter, only that its executible by servo_ctl.py at start up. The execution of this file sets a collection of variables at run time, allowing you to switch hardware environments fairly quickly and get up and running with out editing the main code in servo_ctl.py.
 
+Ventservo was built to run on RaspberryPi and control a hybrid closed-loop stepper/servo ,[like this one](https://www.amazon.com/gp/product/B07VK2GLFY/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1), using RPi GPIO and the rospy libs. Ventservo provides 3 services to configure, control and check status of the motor operation. It publishes motor-position in step-units to a ROS topic.
 
-Ventservo was built to run on RaspberryPi and control a hybrid closed-loop servo ,[like this one](https://www.amazon.com/gp/product/B07VK2GLFY/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1), using GPIO and the rospy libs. Ventservo provides 3 services to configure, control and check status of the motor operation. It publishes motor-position in step-units to a ROS topic.
-
-Its recommended to run the ventservo/servo-ctl node on a dedicated RaspberryPi. ROS core and execution of ventservo service-calls and monitor ventservo motorposition topic on a seperate ROS machines, not the RPI running ventservo.
+Its recommended to run the ventservo/servo_ctl.py node on a dedicated RaspberryPi. ROS core and execution of ventservo service-calls and monitor ventservo motorposition topic on a seperate ROS machines, not the RPi running ventservo.
 
 Motor specifics are configurable. Inspiration and expiration rates are configurable, As well as the time interval between inspiration and expiration cycles is configurable. ventsero reads the config-file, motor_config_A.py, at start up, you can modify the configuration using the service-calls after servo_ctl.py node is running.
 
-This current version of ventservo is all software based and hence suffers from some pit-falls of sharing a processor between direct motor control (pulsing the stepper motor driver) and other functions the operating system must do (respond to service request, etc..). Future versions (in development now) will integrate ROS-Serial-Arduino to handle the motor specific thread and avoid the problems of a shared CPU. 
+This current version of ventservo is all software based and hence suffers from some pit-falls of sharing a processor between direct motor control (pulsing the stepper motor driver) and other functions the operating system must do (respond to service request, etc..). This is why it's recommended that only servo_ctl.py node run on the dedicated RPi with GPIO connected to Hybrid-stepper/servo driver. Future versions (in development now) will integrate ROS-Serial-Arduino to handle the motor specific thread and avoid the problems of a shared CPU. 
 
 ## Disclaimer
-This software is experimental. The associated hardware I refer to here is experimental. I do not offer any guarantees on the worthiness or readiness of this software and the associated hardware to be used in healthcare or by people in any application. Use at your own risk. 
+This software is experimental. The associated hardware I refer to in this README is experimental. I do not offer any guarantees on the worthiness or readiness of this software and the associated hardware to be used in healthcare or by people in any application. Use at your own risk. 
 
 ## Background
 I'm a independent researcher in the 3D printing, electronics and infrastructure software areas. Ventilators are not my buisness, I'm just interested in them and all the skills needed to bring one together. 
 
-I needed to write ventservo because I needed to control the motor on [my 3D printable version](https://www.thingiverse.com/thing/xxxxxx) of the [MIT E-Vent project v2.0 T-Slot](https://e-vent.mit.edu). I was so impressed with the MIT design. I wanted a 3D printable version. Once I had that, I needed to test the mechanics of my version. I decided to use a closed-loop hyprid-stepper motor. The physical aspects of a 12N.m hold stepper did not plug right in to the MIT design. Hence the first version being all software based versus the better mcu based. A ROS-Serial-Arduino version in the works now.
+I needed to write ventservo because I needed to control the motor on [my 3D printable version](https://www.thingiverse.com/thing/xxxxxx) of the [MIT E-Vent project v2.0 T-Slot](https://e-vent.mit.edu). I was so impressed with the MIT design. I wanted a 3D printable version. Once I had that, I needed to test the mechanics of my version. I decided to use a closed-loop hyprid-stepper motor. The physical aspects of a 12N.m hold stepper did not plug right in to the MIT design. So some significatn changes were made. A python motor control path was fast and easy for me. Hence the first version being all software based versus the better mcu based. A ROS-Serial-Arduino version is gonna be fun to learn and in the works now.
 
-I'm releasing this software in hopes that other can beneifit from my work in their opensource projects, that those that find this usefull contribute enhancements and improvements back to this repo, and to get feedback from other more experienced coders and ventilator designers.
+I'm releasing this software in hopes that others can beneifit from my work in their opensource projects, that those that find this usefull contribute enhancements and improvements back to this repo, and to get feedback from other more experienced coders and ventilator designers.
 
 ## How to use
 
@@ -105,7 +104,7 @@ expiratory_rate = .005
 inspiratory_hold = .25
 expiratory_hold = .5
 ```
-motor_config_A.py is passed as a commandline argument to rosrun when the ventservo node is started. This file configures the ventservo/servo_ctl.py node at start up. By default the servo is disabled, this is recommended. A seperate step will start it up, you can change the default behavior if you'd like and you know  it's safe. 
+motor_config_A.py is passed as a commandline argument to rosrun when the ventservo/servo_ctl.py node is started. This file configures the ventservo/servo_ctl.py node at start up. By default the stepper/servo is disabled, this is recommended. A seperate step will enable the motor to move, you can change the default behavior if you'd like and you know  it's safe. 
 
 Three GPIO pins are used:
 
@@ -127,13 +126,13 @@ Motion Control is the configuration used to manipulate the stepper/servo. Some c
 
 - **servo_angle** The angle of motion the motor moves to create the inspiration/expiration cycle. It's important that you set this properly, you can break your machine if you set the angle too large and moving parts crash. For the Ambu-bag I developed with 50 to 55 degrees was a complete compression. 
 
-- **inspiratory_rate** Unsigned float number in seconds representing the inter-step interval for a given angle of motion. With this parameter you can determine the speed at which the motor mechanisim compresses the Ambu-bag.
+- **inspiratory_rate** Float number in seconds representing the inter-step interval for a given angle of motion. With this parameter you can determine the speed at which the motor mechanisim compresses the Ambu-bag.
 
-- **expiratory_rate** Unsigned float number in seconds representing the inter-step interval for a given angle of motion. With this parameter you can determine the speed at which the motor mechanisim releases the Ambu-bag.
+- **expiratory_rate** Float number in seconds representing the inter-step interval for a given angle of motion. With this parameter you can determine the speed at which the motor mechanisim releases the Ambu-bag.
 
-- **inspiratory_hold** Unsigned float number in seconds representing the interval between the end of the inspiratory (compression) cycle and the expriatory (release) cycle.
+- **inspiratory_hold** Float number in seconds representing the interval between the end of the inspiratory (compression) cycle and the expriatory (release) cycle.
 
-- **expiratory_hold** Unsigned float number in seconds representing the interval between the end of the expiratory (release) cycle and the inspriatory (compression) cycle.
+- **expiratory_hold** Float number in seconds representing the interval between the end of the expiratory (release) cycle and the inspriatory (compression) cycle.
 
 ### Start the ventservo ROSnode
 1. Start your ROScore. Ideally, ROScore is not running on the RPi you're running ventservo.
@@ -145,7 +144,7 @@ $ rosrun ventservo servo_ctl.py /path/to/your/catkin_ws/src/ventservo/scripts/mo
 
 ### Start / Stop ventservo
 
-When ventservo rosnode starts the included motor_config file disables the motor. This allow you to manually manipulate the ambu-bag compression fingers (assuming you're using an ambu-bag). You should should manually position the compression fingers to the position you want to use a 0 steps, the starting point. From this point all other step moves are calculated. Maybe later a homeing function will be added. 
+When ventservo rosnode starts the included motor_config_A.py file disables the motor. This allows you to manually manipulate the ambu-bag compression fingers (assuming you're using an ambu-bag). You should should manually position the compression fingers to the position you want to use as 0-steps/home-position, the starting point. From this point all other step moves are counted. Maybe later a homeing function will be added. 
 
 Additionally and importantly, make sure your servo_angle is "SAFE". Meaning you're not gonna instruct your motor to crush the compression fingers. Start with a servo_angle you know will not cause a problem, then fine tune it from there. Once you feel good with your starting point and your servo_angle you're ready to enable the motor. Ventservos servo_ctl.py provides a dedicated service to enable and disable the motor, ventservo_srv_state.
 
@@ -155,13 +154,11 @@ From the RPi or any ROS machine with the built ventservo package you can enable/
 
 ```
 $ rosservice call /ventservo_srv_state "type: 'enable'"
-[ sample output... ]
 ```
 - Disable motor, using rosservice:
 
 ```
 $ rosservice call /ventservo_srv_state "type: 'disable'"
-[ sample output... ]
 ```
 
 I've included some basic bash scripts that accomplish the same thing.
@@ -171,7 +168,6 @@ I've included some basic bash scripts that accomplish the same thing.
 ```
 $ cd /path/to/your/catkin_ws/src/ventservo/scripts
 $ ./vent_enable.sh
-[ sample output... ]
 ```
 
 - Disable motor using bash script:
@@ -179,7 +175,6 @@ $ ./vent_enable.sh
 ```
 $ cd /path/to/your/catkin_ws/src/ventservo/scripts
 $ ./vent_disable.sh
-[ sample output... ]
 ```
 
 ### Check status of ventservo
@@ -188,7 +183,6 @@ Ventservos servo_ctl.py provides a dedicated service to collect configuration st
 
 ```
 $ rosservice call /ventservo_srv_status "type: 'status'"
-[ sample output... ]
 ```
 
 ### monitor motor position
@@ -196,11 +190,10 @@ Ventservo servo_ctl has a dedicated thread to publish the current motor position
 
 ```
 $ rostopic echo /servoPosition
-[ sample output... ]
 ```
 
 ### Modify ventservo configuration
-Besides being configured at start up, the venservo servo_ctl node will accept configurations changes via a dedicated service. It's intended to be totally on the fly, change any config parameter at any time. But, it's not quite there yet. Best/recommended practice is to disable the motor, make the change and re-enable the motor to get the most predictable result. I plan to make on the fly really work in the future.
+Besides being configured at start up, the venservo servo_ctl.py node will accept configurations changes via a dedicated service. Configuration/reconfiguration is intended to be totally on the fly, change any config parameter at any time. But, it's not quite there yet. Best/recommended practice, today, is to disable the motor, make the change and re-enable the motor to get the most predictable result. I plan to make on the fly really work in the future.
 
 1. Disable the  motor:
 ```
@@ -225,3 +218,5 @@ $ rosservice call /ventservo_srv_state "type: 'enable'"
   - Enhance inspiration/expiration logic for non-linear stepping rates(curves).
   - Make motor position publisher configurable.
   - Make on the fly config param changes work predictably.
+  - Make config parameter float numbers unsigned. For now don't use negative values, don't know what it'll do.
+  
