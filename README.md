@@ -24,16 +24,16 @@ This software is experimental. The associated hardware I refer to in this README
 ## Background
 I'm a independent researcher in the 3D printing, electronics and infrastructure software areas. Ventilators are not my buisness, I'm just interested in them and all the skills needed to bring one together. 
 
-I needed to write ventservo because I needed to control the motor on [my 3D printable version](https://www.thingiverse.com/thing/xxxxxx) of the [MIT E-Vent project v2.0 T-Slot](https://e-vent.mit.edu). I was so impressed with the MIT design. I wanted a 3D printable version. Once I had that, I needed to test the mechanics of my version. I decided to use a closed-loop hyprid-stepper motor. The physical aspects of a 12N.m hold stepper did not plug right in to the MIT design. So some significatn changes were made. A python motor control path was fast and easy for me. Hence the first version being all software based versus the better mcu based. A ROS-Serial-Arduino version is gonna be fun to learn and in the works now.
+I needed to write ventservo because I needed to control the motor on [my 3D printable version](https://www.thingiverse.com/thing:4390796) of the [MIT E-Vent project v2.0 T-Slot](https://e-vent.mit.edu). I was so impressed with the MIT design. I wanted a 3D printable version. Once I had that, I needed to test the mechanics of my version. I decided to use a closed-loop hyprid-stepper motor. The physical aspects of a 12N.m hold stepper did not plug right in to the MIT design. So some significatn changes were made. A python motor control path was fast and easy for me. Hence the first version being all software based versus the better mcu based. A ROS-Serial-Arduino version is gonna be fun to learn and in the works now.
 
 I'm releasing this software in hopes that others can beneifit from my work in their opensource projects, that those that find this usefull contribute enhancements and improvements back to this repo, and to get feedback from other more experienced coders and ventilator designers.
 
 ## How to use
 
 ### Hardware and wiring
-[Ventservo example wiring diagram](docs/wiring_diagram.png)
+[Ventservo example wiring diagram](docs/ventservo_example_wiring.png)
 
-[Printable Emergency Ventilator](https://www.thingiverse.com/thing/xxxxxx)
+[Printable Emergency Ventilator](https://www.thingiverse.com/thing:4390796)
 
 ### Get the ventservo ROS Pkg
 1. Navigate to catkin work space root
