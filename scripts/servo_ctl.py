@@ -43,7 +43,7 @@ def pub_position():
     global stop_threads
     pub = rospy.Publisher('servoPosition', Float32, queue_size=10)
     rate = rospy.Rate(10)
-    while not True:
+    while True:
         pub.publish(motorposition)
         rate.sleep()
         if stop_threads:

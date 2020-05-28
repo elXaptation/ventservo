@@ -2,7 +2,7 @@
 ## PINS
 pulsePos = 37
 directionPos = 35
-enableofflinePos = 33
+enableofflinePos = 31
 ## Motion Control
 servo_state = "disable"
 steps_per_revolution = 1600
