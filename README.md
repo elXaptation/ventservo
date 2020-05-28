@@ -181,7 +181,33 @@ Motion Control is the configuration used to manipulate the stepper/servo. Some c
 ```
 $ rosrun ventservo servo_ctl.py /path/to/your/catkin_ws/src/ventservo/scripts/motor_config_A.py
 ```
+Sample Output:
+```
+[INFO] [1590696985.741178]: Ready to receive servo control requests.
+[INFO] [1590696985.755544]: VENT_INSPIRATORY: WARNING, servo disabled, skipping inspiratory cycle.
+[INFO] [1590696990.769738]: VENT_INSPIRATORYHOLD: waiting before starting expiratory cycle, 0.25
+[INFO] [1590696991.033979]: VENT_INSPIRATORYHOLD: hold complete.
+[INFO] [1590696991.043672]: VENT_EXPIRATORY: Servo not in acceptable position, skipping expiratory cycle
+[INFO] [1590696991.051887]: VENT_EXPIRATORYHOLD: waiting before starting inspiratory cycle, 0.5
+[INFO] [1590696991.563512]: VENT_EXPIRATORYHOLD: hold complete.
+[INFO] [1590696991.575923]: ___ DRIVESERVO: Cycles completed: 0 ___
+[INFO] [1590696991.588232]: VENT_INSPIRATORY: WARNING, servo disabled, skipping inspiratory cycle.
+[INFO] [1590696996.602321]: VENT_INSPIRATORYHOLD: waiting before starting expiratory cycle, 0.25
+[INFO] [1590696996.862662]: VENT_INSPIRATORYHOLD: hold complete.
+[INFO] [1590696996.875088]: VENT_EXPIRATORY: Servo not in acceptable position, skipping expiratory cycle
+[INFO] [1590696996.883506]: VENT_EXPIRATORYHOLD: waiting before starting inspiratory cycle, 0.5
+[INFO] [1590696997.394610]: VENT_EXPIRATORYHOLD: hold complete.
+[INFO] [1590696997.404429]: ___ DRIVESERVO: Cycles completed: 0 ___
+```
+
 3. To stop Ventservo servo_ctl: `[ctrl]-c` ; servo_ctl will clean up threads and release GPIO resources.
+
+```
+[INFO] [1590696997.471809]: Node shutdown and clean-up...
+[INFO] [1590696997.482909]: Stopping threads...
+[INFO] [1590697003.240471]: Releasing GPIO resources
+[INFO] [1590697003.251971]: ... Complete
+```
 
 ### Start / Stop ventservo
 
@@ -195,11 +221,31 @@ From the RPi or any ROS machine with the built ventservo package you can enable/
 
 ```
 $ rosservice call /ventservo_srv_state "type: 'enable'"
+servo_state: "enable"
+steps_per_revolution: 1600
+servo_angle: 55.0
+inspiratory_rate: 0.00200000009499
+expiratory_rate: 0.00499999988824
+inspiratory_hold: 0.25
+expiratory_hold: 0.5
+currentTime: 
+  secs: 1590697391
+  nsecs: 628700017
 ```
 - Disable motor, using rosservice:
 
 ```
 $ rosservice call /ventservo_srv_state "type: 'disable'"
+servo_state: "disable"
+steps_per_revolution: 1600
+servo_angle: 55.0
+inspiratory_rate: 0.00200000009499
+expiratory_rate: 0.00499999988824
+inspiratory_hold: 0.25
+expiratory_hold: 0.5
+currentTime: 
+  secs: 1590697404
+  nsecs: 107548952
 ```
 
 I've included some basic bash scripts that accomplish the same thing.
@@ -224,6 +270,16 @@ Ventservos servo_ctl.py provides a dedicated service to collect configuration st
 
 ```
 $ rosservice call /ventservo_srv_status "type: 'status'"
+servo_state: "enable"
+steps_per_revolution: 1600
+servo_angle: 55.0
+inspiratory_rate: 0.00200000009499
+expiratory_rate: 0.00499999988824
+inspiratory_hold: 0.25
+expiratory_hold: 0.5
+currentTime: 
+  secs: 1590697538
+  nsecs: 954833030
 ```
 
 ### monitor motor position
@@ -231,6 +287,79 @@ Ventservo servo_ctl has a dedicated thread to publish the current motor position
 
 ```
 $ rostopic echo /servoPosition
+data: 143.0
+---
+data: 123.0
+---
+data: 104.0
+---
+data: 84.0
+---
+data: 65.0
+---
+data: 45.0
+---
+data: 26.0
+---
+data: 6.0
+---
+data: 0.0
+---
+data: 0.0
+---
+data: 0.0
+---
+data: 0.0
+---
+data: 0.0
+---
+data: 5.0
+---
+data: 52.0
+---
+data: 99.0
+---
+data: 147.0
+---
+data: 194.0
+---
+data: 241.0
+---
+data: 244.0
+---
+data: 244.0
+---
+data: 244.0
+---
+data: 227.0
+---
+data: 208.0
+---
+data: 188.0
+---
+data: 169.0
+---
+data: 149.0
+---
+data: 130.0
+---
+data: 110.0
+---
+data: 91.0
+---
+data: 71.0
+---
+data: 52.0
+---
+data: 32.0
+---
+data: 13.0
+---
+data: 0.0
+---
+data: 0.0
+---
+data: 0.0
 ```
 
 ### Modify ventservo configuration
