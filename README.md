@@ -1,5 +1,5 @@
 # ventservo
-Ventservo is Emergency Ventilator motor contol package. It's created as a Robot Operating System (ROS) package. Its capable of controlling a reversible hybrid-stepper/servo motor mechanisim. I use this package to control an Ambu-bag based emergency ventilator. In theory, different types of ventilator mechanisims can be contolled if they use a reversible motor mechanisim.
+Ventservo is an Emergency Ventilator motor contol package. It's created as a Robot Operating System (ROS) package. Its capable of controlling a reversible hybrid-stepper/servo motor mechanisim. I use this package to control an Ambu-bag based emergency ventilator. In theory, different types of ventilator mechanisims can be contolled if they use a reversible motor mechanisim.
 
 ## Description
 Ventservos intention is to provide ventilator motor control as a service. Whereby more sophisticated robotics softwares can handle more elaborate/sophisticated aspects of running a ventilator. This is a base functionality to enable better ventilator applications. The ventservo project is writen in python and is composed of two parts.
@@ -161,9 +161,9 @@ Change the pins in the config file as you need. They are set up at the rosnode s
 
 Motion Control is the configuration used to manipulate the stepper/servo. Some config parameters are obvious. Some need some explination:
 
-- **servo_state** enable | disable are the two options. This tells servo_control to proceed with moving the motor or not. Disable, turns off the stepper/server hold voltage/current, so you can manually manipulate the drive system. Toggleing the servo_state bascially toggles the enableofflinePos pin. Important to note, every time you toggle enable/disable, motor position is reset to 0 or the begining/start. When the configuration is changed during operation between enable to disable, then servo_control will complete the current inspiration/expiration cycle and actuial disable will occur when then motor position returns to 0.  
+- **servo_state** enable | disable are the two options. This tells servo_control to proceed with moving the motor or not. Disable, turns off the stepper/server hold voltage/current, so you can manually manipulate the drive system. Toggleing the servo_state bascially toggles the enableofflinePos pin. Important to note, every time you toggle enable/disable, motor position is reset to 0 or the begining/start. When the configuration is changed during operation between enable to disable, then servo_control will complete the current inspiration/expiration cycle and actual disable will occur when then motor position returns to 0.  
 
-- **steps_per_revolution** Integer number of steps for a complete revolution of the stepper/servo. Default in my repo is 1600 because that's what I have the micro-stepping dip switches set to on the hybrid-stepper driver. Make sure this matches you hardware setting. This integer is used in calculations to determine the steps to acheive the angle of motion used to create the inspiration/expiration cycle.
+- **steps_per_revolution** Integer number of steps for a complete revolution of the stepper/servo. Default in this repo is 1600 because that's what I have the micro-stepping dip switches set to on the hybrid-stepper driver. Make sure this matches your hardware setting. This integer is used in calculations to determine the steps to acheive the angle of motion used to create the inspiration/expiration cycle.
 
 - **servo_angle** The angle of motion the motor moves to create the inspiration/expiration cycle. It's important that you set this properly, you can break your machine if you set the angle too large and moving parts crash. For the Ambu-bag I developed with 50 to 55 degrees was a complete compression. 
 
