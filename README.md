@@ -232,6 +232,40 @@ currentTime:
   secs: 1590697391
   nsecs: 628700017
 ```
+servo_ctl.py log output example:
+
+```
+[INFO] [1590697391.629809]: SERVOCTL: Request Rx: enable
+[INFO] [1590697393.106465]: VENT_INSPIRATORYHOLD: waiting before starting expiratory cycle, 0.25
+[INFO] [1590697393.370422]: VENT_INSPIRATORYHOLD: hold complete.
+[INFO] [1590697393.381193]: VENT_EXPIRATORY: Servo not in acceptable position, skipping expiratory cycle
+[INFO] [1590697393.390477]: VENT_EXPIRATORYHOLD: waiting before starting inspiratory cycle, 0.5
+[INFO] [1590697393.903311]: VENT_EXPIRATORYHOLD: hold complete.
+[INFO] [1590697393.913208]: ___ DRIVESERVO: Cycles completed: 0 ___
+[INFO] [1590697393.921268]: VENT_INSPIRATORY: Cycle Start, servo_angle: 55, servo_steps: 244, inspiratory_rate: 0.002
+[INFO] [1590697394.449861]: VENT_INSPIRATORY: Current servo position: 244
+[INFO] [1590697394.461490]: VENT_INSPIRATORY: Cycle Complete in: 0.526379823685
+[INFO] [1590697394.473154]: VENT_INSPIRATORYHOLD: waiting before starting expiratory cycle, 0.25
+[INFO] [1590697394.743381]: VENT_INSPIRATORYHOLD: hold complete.
+[INFO] [1590697394.754359]: VENT_EXPIRATORY: Cycle Start, servo_angle: 55, servo_steps: 244, expiratory_rate: 0.005
+[INFO] [1590697396.015296]: VENT_EXPIRATORY: Current servo position: 0
+[INFO] [1590697396.026372]: VENT_EXPIRATORY: Cycle Complete in: 1.48544287682
+[INFO] [1590697396.033992]: VENT_EXPIRATORYHOLD: waiting before starting inspiratory cycle, 0.5
+[INFO] [1590697396.542348]: VENT_EXPIRATORYHOLD: hold complete.
+[INFO] [1590697396.552532]: ___ DRIVESERVO: Cycles completed: 1 ___
+[INFO] [1590697396.561824]: VENT_INSPIRATORY: Cycle Start, servo_angle: 55, servo_steps: 244, inspiratory_rate: 0.002
+[INFO] [1590697397.086722]: VENT_INSPIRATORY: Current servo position: 244
+[INFO] [1590697397.097825]: VENT_INSPIRATORY: Cycle Complete in: 1.3933031559
+[INFO] [1590697397.110746]: VENT_INSPIRATORYHOLD: waiting before starting expiratory cycle, 0.25
+[INFO] [1590697397.370610]: VENT_INSPIRATORYHOLD: hold complete.
+[INFO] [1590697397.381216]: VENT_EXPIRATORY: Cycle Start, servo_angle: 55, servo_steps: 244, expiratory_rate: 0.005
+[INFO] [1590697398.644216]: VENT_EXPIRATORY: Current servo position: 0
+[INFO] [1590697398.656183]: VENT_EXPIRATORY: Cycle Complete in: 1.26270413399
+[INFO] [1590697398.666389]: VENT_EXPIRATORYHOLD: waiting before starting inspiratory cycle, 0.5
+[INFO] [1590697399.177757]: VENT_EXPIRATORYHOLD: hold complete.
+[INFO] [1590697399.191261]: ___ DRIVESERVO: Cycles completed: 2 ___
+```
+
 - Disable motor, using rosservice:
 
 ```
