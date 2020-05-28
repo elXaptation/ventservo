@@ -75,8 +75,6 @@ To make the /dev/gpiomem settings persist after a reboot of the RPi:
 ```
 $ sudo cp ./ros-fix-gpio-perms.sh  /etc/rc.local
 ```
-```
-
 
 ### Get the ventservo ROS Pkg
 1. Navigate to catkin work space root
