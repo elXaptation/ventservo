@@ -4,19 +4,19 @@ Ventservo is Emergency Ventilator motor contol package. It's created as a Robot 
 ## Description
 Ventservos intention is to provide ventilator motor control as a service. Whereby more sophisticated robotics softwares can handle more elaborate/sophisticated aspects of running a ventilator. This is a base functionality to enable better ventilator applications. The ventservo project is writen in python and is composed of two parts.
 
-### - servo_ctl.py
+### 1. servo_ctl.py
 A self contained python script that implements the status, state and configuration servers that drive the motor movements via GPIO on the first thread and a motorposition publisher on a second thread.
 
-### - motor_config_A.py
+### 2. motor_config_A.py
 A start-up configuration file that is specified as a command line argument at rosnode start up (rosrun). The actual name doesn't matter, only that its executible by servo_ctl.py at start up. The execution of this file sets a collection of variables at run time, allowing you to switch hardware environments fairly quickly and get up and running with out editing the main code in servo_ctl.py.
 
 Ventservo was built to run on RaspberryPi and control a hybrid closed-loop stepper/servo ,[like this one](https://www.amazon.com/gp/product/B07VK2GLFY/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1), using RPi GPIO and the rospy libs. Ventservo provides 3 services to configure, control and check status of the motor operation. It publishes motor-position in step-units to a ROS topic.
 
-Its recommended to run the ventservo/servo_ctl.py node on a dedicated RaspberryPi. ROS core and execution of ventservo service-calls and monitor ventservo motorposition topic on a seperate ROS machines, not the RPi running ventservo.
+Its recommended to run the ventservo/servo_ctl.py node on a dedicated RaspberryPi. ROS core and execution of ventservo service-calls and monitor ventservo motorposition topic on a seperate ROS machines highly recommended, not on the RPi running ventservo.
 
 Motor specifics are configurable. Inspiration and expiration rates are configurable, As well as the time interval between inspiration and expiration cycles is configurable. ventsero reads the config-file, motor_config_A.py, at start up, you can modify the configuration using the service-calls after servo_ctl.py node is running.
 
-This current version of ventservo is all software based and hence suffers from some pit-falls of sharing a processor between direct motor control (pulsing the stepper motor driver) and other functions the operating system must do (respond to service request, etc..). This is why it's recommended that only servo_ctl.py node run on the dedicated RPi with GPIO connected to Hybrid-stepper/servo driver. Future versions (in development now) will integrate ROS-Serial-Arduino to handle the motor specific thread and avoid the problems of a shared CPU. 
+This current version of ventservo is all software based and hence suffers from some pit-falls of sharing a processor between direct motor control (pulsing the stepper motor driver) and other functions the operating system must do (respond to service request, etc..). Since I'm using a closed loop hybrid-stepper, the integrated encoder helps assure the motors position matches what the software thinks the motor has acchomplished. This doesn't solve the problem that the software may miss sending a pulse, however. This is why it's recommended that only servo_ctl.py node run on the dedicated RPi with GPIO connected to Hybrid-stepper/servo driver. Not a real solution, just a best practice for research purposes. Future versions (in development now) will integrate ROS-Serial-Arduino to handle the motor specific thread and avoid the problems of a shared CPU. 
 
 ## Disclaimer
 This software is experimental. The associated hardware I refer to in this README is experimental. I do not offer any guarantees on the worthiness or readiness of this software and the associated hardware to be used in healthcare or by people in any application. Use at your own risk. 
@@ -34,6 +34,49 @@ I'm releasing this software in hopes that others can beneifit from my work in th
 [Ventservo example wiring diagram](docs/ventservo_example_wiring.png)
 
 [Printable Emergency Ventilator](https://www.thingiverse.com/thing:4390796)
+
+### Asure GPIO access for non-root user
+The servo_ctl.py node needs access to GPIO. I run ubuntu 18.04 on my RPi. I needed to allow a non-root user to access the /dev/gpiomem device to drive the GPIO pins. This is how I acchomplished that.
+
+1. Create a new group called GPIO
+
+```
+$ sudo groupadd gpio
+```
+
+2. Add your chosen user to the GPIO group
+
+```
+usermod -a -G gpio [username]
+```
+
+3. Change the group ownwership of /dev/gpiomem to group GPIO
+
+```
+sudo chgrp gpio /dev/gpiomem
+```
+
+4. Modify group permissions of /dev/gpiomem to include read/write.
+
+```
+sudo chmod g+rw /dev/gpiomem
+```
+
+I've included some basic bash script to accomplish this process.
+
+```
+$ roscd ventservo/scripts
+$ sudo ./setup_grp_user.sh [username]
+$ sudo ./ros-fix-gpio-perms.sh 
+```
+
+To make the /dev/gpiomem settings persist after a reboot of the RPi:
+
+```
+$ sudo cp ./ros-fix-gpio-perms.sh  /etc/rc.local
+```
+```
+
 
 ### Get the ventservo ROS Pkg
 1. Navigate to catkin work space root
