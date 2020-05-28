@@ -35,7 +35,7 @@ I'm releasing this software in hopes that others can beneifit from my work in th
 
 [Printable Emergency Ventilator](https://www.thingiverse.com/thing:4390796)
 
-### Asure GPIO access for non-root user
+### Assure GPIO access for non-root user
 The servo_ctl.py node needs access to GPIO. I run ubuntu 18.04 on my RPi. I needed to allow a non-root user to access the /dev/gpiomem device to drive the GPIO pins. This is how I acchomplished that.
 
 1. Create a new group called GPIO
