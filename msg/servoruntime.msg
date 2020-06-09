@@ -1,0 +1,11 @@
+bool servo_state
+int64 steps_per_revolution
+float32 servo_angle
+float32 inspiratory_rate
+float32 expiratory_rate
+float32 inspiratory_hold
+float32 expiratory_hold
+float32 publish_interval
+int16 motor_position_steps
+uint64 cycles_complete
+time currentTime
