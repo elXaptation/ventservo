@@ -22,6 +22,35 @@ motorposition = 0
 ## Config-file way of doing things
 execfile(sys.argv[1])
 
+<<<<<<< HEAD
+=======
+pins = [pulsePos, directionPos, enableofflinePos]
+
+# Set up GPIO Pins
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(pulsePos,GPIO.OUT)
+GPIO.setup(directionPos,GPIO.OUT)
+GPIO.setup(enableofflinePos,GPIO.OUT)
+
+
+# Initial Pin state
+GPIO.output(pulsePos,GPIO.LOW)
+GPIO.output(directionPos,GPIO.HIGH)
+# Setting Servo Offline/Disabled at begining. Must enable.
+GPIO.output(enableofflinePos,GPIO.HIGH)
+
+def pub_position():
+    global motorposition
+    global stop_threads
+    pub = rospy.Publisher('servoPosition', Float32, queue_size=10)
+    rate = rospy.Rate(10)
+    while True:
+        pub.publish(motorposition)
+        rate.sleep()
+        if stop_threads:
+            break
+
+>>>>>>> 995c8c559d0eeba799cd601867ce9d4d33e9201b
 
 def handle_servoctl(req):
     motorenable = GPIO.input(enableofflinePos) 
