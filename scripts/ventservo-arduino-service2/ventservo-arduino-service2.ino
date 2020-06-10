@@ -1,9 +1,10 @@
 /* ventservo-arduino-service
  * Copyright Industrial Xaptation Limited 2020
  * All Rights Reserved.
- * 
+ *
  * Emergency ventilator motor-contol sketch. Drives a Closed-loop Hybrid-Stepper motor to compress an Ambu-bag or similar.
- * 
+ *
+ *
  */
 
 #include <ros.h>
@@ -67,7 +68,7 @@ void server_config(const servort::Request & req, servort::Response & res){
   crt_ih = req.inspiratory_hold;
   crt_eh = req.expiratory_hold;
   pub_interval = req.publish_interval;
-  
+
   res.servo_state = rt_motorState;
   res.steps_per_revolution = crt_spr;
   res.servo_angle = crt_sa;
@@ -91,13 +92,13 @@ void setup(){
   digitalWrite(pulsePos, LOW);
   digitalWrite(directionPos, LOW);
   digitalWrite(enableofflinePos, HIGH);
-  
+
   nh.initNode();
   nh.advertiseService(srv_config);
   nh.advertise(ventservoStatus);
 
 // Default motor settings.
-  rt_motorState = 0;     
+  rt_motorState = 0;
   rt_spr = 1600;
   rt_sa = 60.0;
   rt_ir = 2.0;
@@ -123,21 +124,7 @@ void loop(){
     expiration_hold();
     rt_cc++;
     motorStateCtl();
-    nh.spinOnce();    
+    nh.spinOnce();
   }
-  nh.spinOnce();    
+  nh.spinOnce();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
