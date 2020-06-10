@@ -1,5 +1,9 @@
-/*
- * ventservo-arduino-service
+/* ventservo-arduino-service
+ * Copyright Industrial Xaptation Limited 2020
+ * All Rights Reserved.
+ * 
+ * Emergency ventilator motor-contol sketch. Drives a Closed-loop Hybrid-Stepper motor to compress an Ambu-bag or similar.
+ * 
  */
 
 #include <ros.h>
@@ -53,6 +57,7 @@ Chrono holdExs;
 Chrono statusPub;
 Chrono pulseSpeed;
 
+
 void server_config(const servort::Request & req, servort::Response & res){
   rt_motorState = req.servo_state;
   crt_spr = req.steps_per_revolution;
@@ -76,112 +81,6 @@ void server_config(const servort::Request & req, servort::Response & res){
 
 ros::ServiceServer<servort::Request, servort::Response> srv_config("ventservo_rtsrv_config",&server_config);
 
-int calc_steps(int rt_spr, float rt_sa){
-  float degrees_per_step = float(rt_spr) / float(360);
-  float float_steps = degrees_per_step * rt_sa;
-  float_steps = round(float_steps);
-  int steps = int(float_steps);
-  if(int(steps)){
-    return steps;
-  }
-  else{
-    return 0;
-  }
-}
-
-void pub_vsStatus(){
-  if(statusPub.hasPassed(pub_interval)){
-    statusPub.restart();
-    vsStatus.servo_state = rt_motorState;
-    vsStatus.steps_per_revolution = rt_spr;
-    vsStatus.servo_angle = rt_sa;
-    vsStatus.inspiratory_rate = rt_ir;
-    vsStatus.expiratory_rate = rt_er;
-    vsStatus.inspiratory_hold = rt_ih;
-    vsStatus.expiratory_hold = rt_eh;
-    vsStatus.publish_interval = pub_interval;
-    vsStatus.motor_position_steps = steps;
-    vsStatus.cycles_complete = rt_cc;
-    vsStatus.currentTime = nh.now();
-    
-    ventservoStatus.publish( &vsStatus );
-  }
-}
-void drive_inspiration(){
-  pub_vsStatus();
-  digitalWrite(directionPos, HIGH);  
-  driveIns.restart();  
-  while(steps < rt_steps){
-    pub_vsStatus();
-    if(driveIns.hasPassed(rt_ir)){
-      driveIns.restart();
-      pub_vsStatus();
-      digitalWrite(pulsePos, HIGH);
-      digitalWrite(pulsePos, LOW);        
-      steps++;
-    }
-  }
-}
-
-void drive_expiration(){
-  pub_vsStatus();
-  digitalWrite(directionPos, LOW);
-  driveExs.restart();
-  while(steps > 0){
-    pub_vsStatus();
-    if(driveExs.hasPassed(rt_er)){
-      driveExs.restart();
-      pub_vsStatus();
-      digitalWrite(pulsePos, HIGH);
-      digitalWrite(pulsePos, LOW);        
-      steps--;      
-    }
-  }
-}
-
-void inspiration_hold(){
-  pub_vsStatus();
-  holdIns.restart();
-  while(true){
-    pub_vsStatus();
-    if(holdIns.hasPassed(rt_ih)){
-      pub_vsStatus();
-      break;
-    }
-  }
-}
-
-
-void expiration_hold(){
-  pub_vsStatus();
-  holdExs.restart();
-  while(true){
-    pub_vsStatus();
-    if(holdExs.hasPassed(rt_eh)){
-      pub_vsStatus();
-      break;
-    }
-  }
-}
-
-void motorStateCtl(){
-  if(rt_motorState){
-    digitalWrite(enableofflinePos, LOW);
-  }
-  else {
-    digitalWrite(enableofflinePos, HIGH);
-  }
-}
-
-void activate_crt(){
-  // Make configured the actual RT parameters.
-  rt_spr = crt_spr;
-  rt_sa = crt_sa;
-  rt_ir = crt_ir;
-  rt_ih = crt_ih;
-  rt_er = crt_er;
-  rt_eh = crt_eh;
-}
 
 void setup(){
   // make the pins outputs:
@@ -228,3 +127,17 @@ void loop(){
   }
   nh.spinOnce();    
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
