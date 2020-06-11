@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import RPi.GPIO as GPIO
 import time
 import threading 
 import os 
@@ -23,6 +22,8 @@ motorposition = 0
 ## Config-file way of doing things
 execfile(sys.argv[1])
 
+<<<<<<< HEAD
+=======
 pins = [pulsePos, directionPos, enableofflinePos]
 
 # Set up GPIO Pins
@@ -43,12 +44,13 @@ def pub_position():
     global stop_threads
     pub = rospy.Publisher('servoPosition', Float32, queue_size=10)
     rate = rospy.Rate(10)
-    while not True:
+    while True:
         pub.publish(motorposition)
         rate.sleep()
         if stop_threads:
             break
 
+>>>>>>> 995c8c559d0eeba799cd601867ce9d4d33e9201b
 
 def handle_servoctl(req):
     motorenable = GPIO.input(enableofflinePos) 
@@ -237,22 +239,7 @@ def servo_ctl_server():
     
 
 def cleanup():
-    global t1
-    global t2
-    global stop_threads
-
-    rospy.loginfo("Node shutdown and clean-up...")
-    
-    # Stop Threads
-    rospy.loginfo("Stopping threads...")
-    stop_threads = True
-    t1.join()
-    t2.join()
-
-    # Setting Servo Offline/Disabled at begining. Must enable.
-    rospy.loginfo("Releasing GPIO resources")
-    GPIO.output(enableofflinePos,GPIO.HIGH)
-    GPIO.cleanup()
+    rospy.loginfo("Node shutdown and clean-up...")    
     
     rospy.loginfo("... Complete")
 
@@ -265,10 +252,6 @@ def calcctlduration(ctlstart,ctlend):
     ctlduration.combined = float(endcombined) - float(startcombined)
     (ctlduration.secs,ctlduration.nsecs) = str(ctlduration.combined).split('.')
     return ctlduration
-
-def calcsteps(angle,spr):
-    steps_per_degree = spr / 360.0
-    return int(steps_per_degree * angle)
 
 def driveservo():
     global vent_cycles 
@@ -299,19 +282,8 @@ def driveservo():
     
 
 if __name__ == "__main__":
-    global t1
-    global t2
-    global stop_threads
-
-    nicevalue = os.nice(0)
-    rospy.loginfo("Setting Process NICE %s", nicevalue)
     rospy.on_shutdown(cleanup)
     servo_ctl_server()
-    t1 = threading.Thread(target=driveservo,name='ventservo-drive')
-    t2 = threading.Thread(target=pub_position,name='ventservo-pubposition')
-    stop_threads = False
-    t2.start()
-    t1.start()
     rospy.spin()
 
 

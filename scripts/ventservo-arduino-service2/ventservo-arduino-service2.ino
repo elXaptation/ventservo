@@ -4,7 +4,6 @@
  *
  * Emergency ventilator motor-contol sketch. Drives a Closed-loop Hybrid-Stepper motor to compress an Ambu-bag or similar.
  *
- *
  */
 
 #include <ros.h>
