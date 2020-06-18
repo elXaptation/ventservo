@@ -53,6 +53,7 @@ def handle_telemetry(tdata):
     global rt_motorposition
     global rt_cycles_complete
     global rt_telemDataTime
+    global rt_publish_interval
     #currentTime = rospy.get_rostime()
     #rospy.loginfo(tdata)
     rt_servo_state = tdata.servo_state
@@ -90,6 +91,7 @@ def handle_servoctl(req):
     global rt_inspiratory_hold
     global rt_expiratory_hold
     global rt_telemDataTime
+    global rt_publish_interval
     currentTime = rospy.get_rostime()
     cfg_servo_state = None
     cfg_motorState = None
@@ -100,35 +102,38 @@ def handle_servoctl(req):
     cfg_inspiratory_hold = None
     cfg_expiratory_hold = None
 
-#    try:
-    if req.type == "status":
-        # Send current servo control configuration
-        rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
-        return servostatusResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate, rt_inspiratory_hold, rt_expiratory_hold, currentTime)
-    elif req.type == "configuration":
-        # Apply configuration
-        rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
-        cfg_steps_per_revolution = req.steps_per_revolution
-        cfg_servo_angle = req.servo_angle
-        cfg_inspiratory_rate = req.inspiratory_rate
-        cfg_req.expiratory_rate = req.expiratory_rate
-        cfg_inspiratory_hold = req.inspiratory_hold
-        cfg_expiratory_hold = req.expiratory_hold
-        push_config(rt_motorenable,cfg_servo_state,cfg_steps_per_revolution,cfg_servo_angle,cfg_inspiratory_rate,cfg_expiratory_rate,cfg_inspiratory_hold,cfg_expiratory_hold)
-        return servoconfigResponse(rt_servo_state,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_currentTime)
-    elif req.type == "disable":
-        # Disable Servo
-        rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
-        push_config(False,rt_steps_per_revolution,rt_servo_angle,rt_inspiratory_rate,rt_expiratory_rate,rt_inspiratory_hold,rt_expiratory_hold,rt_publish_interval)
-        return servoconfigResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_telemDataTime)
-    elif req.type == "enable":
-        #Enable Servo
-        rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
-        push_config(True,rt_steps_per_revolution,rt_servo_angle,rt_inspiratory_rate,rt_expiratory_rate,rt_inspiratory_hold,rt_expiratory_hold,rt_publish_interval)
-        return servoconfigResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_telemDataTime)
-#    except:
-#        rospy.loginfo("SERVOCTL: WARNING: UNKNOWN request type: %s",req.type)
-#        rospy.loginfo("SERVOCTL: Ignoring last request. Type: %s",req.type)
+    try:
+        if req.type == "status":
+            # Send current servo control configuration
+            rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
+            return servostatusResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate, rt_inspiratory_hold, rt_expiratory_hold, currentTime)
+        elif req.type == "configuration":
+            # Apply configuration
+            rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
+            cfg_steps_per_revolution = req.steps_per_revolution
+            cfg_servo_angle = req.servo_angle
+            cfg_inspiratory_rate = req.inspiratory_rate
+            cfg_expiratory_rate = req.expiratory_rate
+            cfg_inspiratory_hold = req.inspiratory_hold
+            cfg_expiratory_hold = req.expiratory_hold
+            push_config(rt_servo_state,cfg_steps_per_revolution,cfg_servo_angle,cfg_inspiratory_rate,cfg_expiratory_rate,cfg_inspiratory_hold,cfg_expiratory_hold,rt_publish_interval)
+            time.sleep(.5)
+            return servoconfigResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_telemDataTime)
+        elif req.type == "disable":
+            # Disable Servo
+            rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
+            push_config(False,rt_steps_per_revolution,rt_servo_angle,rt_inspiratory_rate,rt_expiratory_rate,rt_inspiratory_hold,rt_expiratory_hold,rt_publish_interval)
+            time.sleep(.5)
+            return servostateResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_telemDataTime)
+        elif req.type == "enable":
+            #Enable Servo
+            rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
+            push_config(True,rt_steps_per_revolution,rt_servo_angle,rt_inspiratory_rate,rt_expiratory_rate,rt_inspiratory_hold,rt_expiratory_hold,rt_publish_interval)
+            time.sleep(.5)
+            return servostateResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_telemDataTime)
+    except:
+        rospy.loginfo("SERVOCTL: EXCEPTION: request type: %s",req.type)
+        rospy.loginfo("SERVOCTL: EXCEPTION: Ignoring last request")
 
 def servo_ctl_server():
     global ventservo_rtsrv_config
@@ -154,6 +159,7 @@ def cleanup():
     stop_threads = True
     t_monitor_ventservort.join()
     t_service_servoctl.join()
+    t_report_cycles.join()
     rospy.loginfo("... Complete")
 
 def calcctlduration(ctlstart,ctlend):
@@ -166,15 +172,31 @@ def calcctlduration(ctlstart,ctlend):
     (ctlduration.secs,ctlduration.nsecs) = str(ctlduration.combined).split('.')
     return ctlduration
 
+def report_cycles():
+    current_cycles = rt_cycles_complete
+    rospy.loginfo("___ Cycles completed: %s ___", current_cycles)
+    while (True):
+        #do something
+        if (rt_cycles_complete > current_cycles):
+            current_cycles = rt_cycles_complete
+            rospy.loginfo("___ Cycles completed: %s ___", current_cycles)
+        elif (stop_threads):
+            break
+        else:
+            time.sleep(.5)
+
 if __name__ == "__main__":
     global t_monitor_ventservort
     global t_service_servoctl
+    global t_report_cycles
     nicevalue = os.nice(0)
     rospy.loginfo("Setting Process NICE %s", nicevalue)
     rospy.on_shutdown(cleanup)
     rospy.init_node('ventservo_server')
-    t_monitor_ventservort = threading.Thread(target=get_telemetry,name='ventservo-telemetrymonitor')
+    t_monitor_ventservort = threading.Thread(target=get_telemetry,name='ventservo_telemetry-monitor')
     t_service_servoctl = threading.Thread(target=servo_ctl_server,name='ventservo_servoctl')
+    t_report_cycles = threading.Thread(target=report_cycles,name='ventservo_report-cycles')
     t_monitor_ventservort.start()
     t_service_servoctl.start()
+    t_report_cycles.start()
     rospy.spin()
