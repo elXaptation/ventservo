@@ -19,9 +19,15 @@ ros::NodeHandle  nh;
 using ventservo::servort;
 
 // pins for Motor Control:
+/*
 const int pulsePos = 3;
 const int directionPos = 5;
 const int enableofflinePos = 6;
+*/
+const int pulsePos = 4;
+const int directionPos = 5;
+const int enableofflinePos = 2;
+
 
 ventservo::servoruntime vsStatus;
 
@@ -83,6 +89,7 @@ ros::ServiceServer<servort::Request, servort::Response> srv_config("ventservo_rt
 
 
 void setup(){
+  Serial.begin(57600);
   // make the pins outputs:
   pinMode(pulsePos, OUTPUT);
   pinMode(directionPos, OUTPUT);
