@@ -19,14 +19,22 @@ ros::NodeHandle  nh;
 using ventservo::servort;
 
 // pins for Motor Control:
+/* Arduino Nano pins
+*/
 const int pulsePos = 3;
 const int directionPos = 5;
 const int enableofflinePos = 6;
 
+/* NodeMCU Pins
+const int pulsePos = 4;
+const int directionPos = 5;
+const int enableofflinePos = 2;
+*/
+
 ventservo::servoruntime vsStatus;
 
 // Actual RT parameters.
-bool rt_motorState;
+bool rt_motorState = false;
 int rt_spr;
 float rt_sa;
 float rt_ir;
@@ -39,13 +47,13 @@ int pub_interval;
 int rt_cc;
 
 // Configured RT paramters.
-int crt_spr;
-float crt_sa;
-float crt_ir;
-float crt_er;
-float crt_ih;
-float crt_eh;
-int crt_steps;
+int crt_spr = 1600;
+float crt_sa = 55.0;
+float crt_ir = 3.0;
+float crt_er = 6.0;
+float crt_ih = 300.0;
+float crt_eh = 500.0;
+int crt_steps = 267;
 
 
 ros::Publisher ventservoStatus("ventservo_status", &vsStatus);
@@ -83,6 +91,7 @@ ros::ServiceServer<servort::Request, servort::Response> srv_config("ventservo_rt
 
 
 void setup(){
+  //Serial.begin(57600);
   // make the pins outputs:
   pinMode(pulsePos, OUTPUT);
   pinMode(directionPos, OUTPUT);
@@ -97,16 +106,18 @@ void setup(){
   nh.advertise(ventservoStatus);
 
 // Default motor settings.
+  /*
   rt_motorState = 0;
   rt_spr = 1600;
   rt_sa = 60.0;
-  rt_ir = 2.0;
-  rt_ih = 200.0;
-  rt_er = 3.0;
-  rt_eh = 300.0;
+  rt_ir = 3.0;
+  rt_ih = 250.0;
+  rt_er = 6.0;
+  rt_eh = 350.0;
   rt_steps = 267;
-  steps = 0;
   // pub_interval < 15 not recommended
+  */
+  steps = 0;
   pub_interval = 50;
   rt_cc = 0;
 }
@@ -114,8 +125,8 @@ void setup(){
 void loop(){
   pub_vsStatus();
   motorStateCtl();
+  activate_crt();
   while (rt_motorState){
-    activate_crt();
     rt_steps = calc_steps(rt_spr,rt_sa);
     drive_inspiration();
     inspiration_hold();

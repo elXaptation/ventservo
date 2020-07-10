@@ -1,246 +1,165 @@
 #!/usr/bin/env python
 
 import time
-import threading 
-import os 
+import threading
+import os
 import sys
 from ventservo.srv import servoconfig,servoconfigResponse
 from ventservo.srv import servostate,servostateResponse
 from ventservo.srv import servostatus,servostatusResponse
+from ventservo.srv import servort,servortResponse
+from ventservo.msg import servoruntime
 from std_msgs.msg import Float32
 import rospy
 
-#steps_per_revolution = 1600
-#servo_angle = 90
-#inspiratory_rate = .001
-#expiratory_rate = .005
-#inspiratory_hold = 2
-#expiratory_hold = 3
-motorposition = 0
+stop_threads = False
+rt_motorState = "disable"
+rt_servo_state = False
+rt_steps_per_revolution = 0
+rt_servo_angle = 0
+rt_inspiratory_rate = 0
+rt_expiratory_rate = 0
+rt_inspiratory_hold = 0
+rt_expiratory_hold = 0
+rt_motorposition = 0
+rt_cycles_complete = 0
+rt_publish_interval = 0
+rt_telemDataTime = None
+ventservo_rtsrv_config = None
 
 # Need to fix this for Python3.x
 ## Config-file way of doing things
 execfile(sys.argv[1])
 
-<<<<<<< HEAD
-=======
-pins = [pulsePos, directionPos, enableofflinePos]
-
-# Set up GPIO Pins
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(pulsePos,GPIO.OUT)
-GPIO.setup(directionPos,GPIO.OUT)
-GPIO.setup(enableofflinePos,GPIO.OUT)
-
-
-# Initial Pin state
-GPIO.output(pulsePos,GPIO.LOW)
-GPIO.output(directionPos,GPIO.HIGH)
-# Setting Servo Offline/Disabled at begining. Must enable.
-GPIO.output(enableofflinePos,GPIO.HIGH)
-
-def pub_position():
-    global motorposition
+def get_telemetry():
     global stop_threads
-    pub = rospy.Publisher('servoPosition', Float32, queue_size=10)
-    rate = rospy.Rate(10)
-    while True:
-        pub.publish(motorposition)
-        rate.sleep()
-        if stop_threads:
-            break
+    #rospy.init_node('ventservo_ctl', anonymous=True)
+    rospy.Subscriber("ventservo_status", servoruntime, handle_telemetry)
+    rospy.loginfo("Monitoring telemetry from topic /ventservo_status.")
+    while not (stop_threads):
+        time.sleep(1)
 
->>>>>>> 995c8c559d0eeba799cd601867ce9d4d33e9201b
+    return
+
+def handle_telemetry(tdata):
+    global rt_motorState
+    global rt_servo_state
+    global rt_steps_per_revolution
+    global rt_servo_angle
+    global rt_inspiratory_rate
+    global rt_expiratory_rate
+    global rt_inspiratory_hold
+    global rt_expiratory_hold
+    global rt_motorposition
+    global rt_cycles_complete
+    global rt_telemDataTime
+    global rt_publish_interval
+    #currentTime = rospy.get_rostime()
+    #rospy.loginfo(tdata)
+    rt_servo_state = tdata.servo_state
+    rt_steps_per_revolution = tdata.steps_per_revolution
+    rt_servo_angle = tdata.servo_angle
+    rt_inspiratory_rate = tdata.inspiratory_rate
+    rt_expiratory_rate = tdata.expiratory_rate
+    rt_inspiratory_hold = tdata.inspiratory_hold
+    rt_expiratory_hold = tdata.expiratory_hold
+    rt_motorposition = tdata.motor_position_steps
+    rt_cycles_complete = tdata.cycles_complete
+    rt_telemDataTime = tdata.currentTime
+    #rospy.loginfo("%i secs, %i nsecs", tdata.currentTime.secs, tdata.currentTime.nsecs)
+    rt_publish_interval = tdata.publish_interval
+    if rt_servo_state:
+        rt_motorState = "enable"
+    else:
+        rt_motorState = "disable"
+
+
+def push_config(cfg_servo_state,cfg_steps_per_revolution,cfg_servo_angle,cfg_inspiratory_rate,cfg_expiratory_rate,cfg_inspiratory_hold,cfg_expiratory_hold,cfg_publish_interval):
+    global ventservo_rtsrv_config
+    rospy.wait_for_service('ventservo_rtsrv_config')
+    ventservo_rtsrv_config(cfg_servo_state,cfg_steps_per_revolution,cfg_servo_angle,cfg_inspiratory_rate,cfg_expiratory_rate,cfg_inspiratory_hold,cfg_expiratory_hold,cfg_publish_interval)
 
 def handle_servoctl(req):
-    motorenable = GPIO.input(enableofflinePos) 
-    global motorposition
-    global servo_state
-    global steps_per_revolution
-    global servo_angle
-    global inspiratory_rate
-    global expiratory_rate
-    global inspiratory_hold
-    global expiratory_hold
+    global rt_servo_state
+    global rt_motorState
+    global rt_motorposition
+    global rt_servo_state
+    global rt_steps_per_revolution
+    global rt_servo_angle
+    global rt_inspiratory_rate
+    global rt_expiratory_rate
+    global rt_inspiratory_hold
+    global rt_expiratory_hold
+    global rt_telemDataTime
+    global rt_publish_interval
     currentTime = rospy.get_rostime()
+    cfg_servo_state = None
+    cfg_motorState = None
+    cfg_steps_per_revolution = None
+    cfg_servo_angle = None
+    cfg_inspiratory_rate = None
+    cfg_expiratory_rate = None
+    cfg_inspiratory_hold = None
+    cfg_expiratory_hold = None
+
     try:
         if req.type == "status":
             # Send current servo control configuration
             rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
-            return servostatusResponse(servo_state,steps_per_revolution, servo_angle, inspiratory_rate, expiratory_rate,inspiratory_hold, expiratory_hold, currentTime)
+            return servostatusResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate, rt_inspiratory_hold, rt_expiratory_hold, currentTime)
         elif req.type == "configuration":
             # Apply configuration
             rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
-            steps_per_revolution = req.steps_per_revolution
-            servo_angle = req.servo_angle
-            inspiratory_rate = req.inspiratory_rate
-            req.expiratory_rate = req.expiratory_rate
-            inspiratory_hold = req.inspiratory_hold
-            expiratory_hold = req.expiratory_hold
-            return servoconfigResponse(servo_state,steps_per_revolution, servo_angle, inspiratory_rate, expiratory_rate,inspiratory_hold, expiratory_hold, currentTime)
+            cfg_steps_per_revolution = req.steps_per_revolution
+            cfg_servo_angle = req.servo_angle
+            cfg_inspiratory_rate = req.inspiratory_rate
+            cfg_expiratory_rate = req.expiratory_rate
+            cfg_inspiratory_hold = req.inspiratory_hold
+            cfg_expiratory_hold = req.expiratory_hold
+            push_config(rt_servo_state,cfg_steps_per_revolution,cfg_servo_angle,cfg_inspiratory_rate,cfg_expiratory_rate,cfg_inspiratory_hold,cfg_expiratory_hold,rt_publish_interval)
+            time.sleep(.5)
+            return servoconfigResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_telemDataTime)
         elif req.type == "disable":
             # Disable Servo
             rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
-            #GPIO.output(enableofflinePos,GPIO.HIGH)
-            servo_state = 'disable' 
-            return servostateResponse(servo_state,steps_per_revolution, servo_angle, inspiratory_rate, expiratory_rate,inspiratory_hold, expiratory_hold, currentTime)
+            push_config(False,rt_steps_per_revolution,rt_servo_angle,rt_inspiratory_rate,rt_expiratory_rate,rt_inspiratory_hold,rt_expiratory_hold,rt_publish_interval)
+            time.sleep(.5)
+            return servostateResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_telemDataTime)
         elif req.type == "enable":
             #Enable Servo
             rospy.loginfo("SERVOCTL: Request Rx: %s",req.type)
-            #GPIO.output(enableofflinePos,GPIO.LOW)
-            servo_state = 'enable'
-            return servostateResponse(servo_state,steps_per_revolution, servo_angle, inspiratory_rate, expiratory_rate,inspiratory_hold, expiratory_hold, currentTime)
+            push_config(True,rt_steps_per_revolution,rt_servo_angle,rt_inspiratory_rate,rt_expiratory_rate,rt_inspiratory_hold,rt_expiratory_hold,rt_publish_interval)
+            time.sleep(.5)
+            return servostateResponse(rt_motorState,rt_steps_per_revolution, rt_servo_angle, rt_inspiratory_rate, rt_expiratory_rate,rt_inspiratory_hold, rt_expiratory_hold, rt_telemDataTime)
     except:
-        rospy.loginfo("SERVOCTL: WARNING: UNKNOWN request type: %s",req.type)
-        rospy.loginfo("SERVOCTL: Ignoring last request. Type: %s",req.type)
-
-def vent_inspiratory():
-    global motorposition
-    global steps_per_revolution
-    global servo_angle
-    global inspiratory_rate
-    global expiratory_rate
-    global inspiratory_hold
-    global expiratory_hold
-
-    servo_steps = calcsteps(servo_angle,steps_per_revolution)
-
-    currentTime = rospy.get_rostime()
-
-    try:
-        if motorposition != 0:
-            rospy.loginfo("VENT_INSPIRATORY: Servo not in acceptable position, skipping inspiratory cycle")
-            if GPIO.input(enableofflinePos):
-                motorposition = 0 
-
-            return True
-        
-        elif not GPIO.input(enableofflinePos):
-            rospy.loginfo("VENT_INSPIRATORY: Cycle Start, servo_angle: %s, servo_steps: %s, inspiratory_rate: %s", servo_angle, servo_steps, inspiratory_rate)
-
-            ctlstart = rospy.get_rostime()
-
-            # Set servo direction: Foward/CW
-            GPIO.output(directionPos,GPIO.HIGH)
-
-            while motorposition < servo_steps:
-                GPIO.output(pulsePos,GPIO.HIGH)
-                GPIO.output(pulsePos,GPIO.LOW)
-                time.sleep(inspiratory_rate)
-                motorposition += 1
-
-            rospy.loginfo("VENT_INSPIRATORY: Current servo position: %s", motorposition)
-
-            ctlend = rospy.get_rostime()
-            ctlduration = calcctlduration(ctlstart,ctlend)
-            rospy.loginfo("VENT_INSPIRATORY: Cycle Complete in: %s.%s", ctlduration.secs, ctlduration.nsecs)
-            return True 
-
-        elif GPIO.input(enableofflinePos):
-            rospy.loginfo("VENT_INSPIRATORY: WARNING, servo disabled, skipping inspiratory cycle.")
-            time.sleep(5)
-            return True 
-   
-        else:
-            rospy.loginfo("VENT_INSPIRATORY: ERROR, servo state UNKNOWN. This is a problem, can not proceed")
-            time.sleep(5)
-            return False
-
-    except:
-        rospy.loginfo("VENT_INSPIRATORY: ERROR, Servo drive cycle failed.")
-        time.sleep(5)
-        return False
-
-def vent_expiratory():
-    global motorposition
-    global steps_per_revolution
-    global servo_angle
-    global inspiratory_rate
-    global expiratory_rate
-    global inspiratory_hold
-    global expiratory_hold
-
-    servo_steps = calcsteps(servo_angle,steps_per_revolution)
-
-    currentTime = rospy.get_rostime()
-
-    try:
-        if motorposition != servo_steps:
-            rospy.loginfo("VENT_EXPIRATORY: Servo not in acceptable position, skipping expiratory cycle")
-            if GPIO.input(enableofflinePos):
-                motorposition = 0
-
-            return True
-
-        elif not GPIO.input(enableofflinePos):
-            rospy.loginfo("VENT_EXPIRATORY: Cycle Start, servo_angle: %s, servo_steps: %s, expiratory_rate: %s", servo_angle, servo_steps, expiratory_rate)
-
-            ctlstart = rospy.get_rostime()
-
-            # Set servo direction: Reverse/CCW
-            GPIO.output(directionPos,GPIO.LOW)
-
-            while motorposition > 0:
-                GPIO.output(pulsePos,GPIO.HIGH)
-                GPIO.output(pulsePos,GPIO.LOW)
-                time.sleep(expiratory_rate)
-                motorposition -= 1
-
-            rospy.loginfo("VENT_EXPIRATORY: Current servo position: %s", motorposition)
-
-            ctlend = rospy.get_rostime()
-            ctlduration = calcctlduration(ctlstart,ctlend)
-            ctlnow = rospy.get_rostime()
-            rospy.loginfo("VENT_EXPIRATORY: Cycle Complete in: %s.%s", ctlduration.secs, ctlduration.nsecs)
-            return True
-
-        elif GPIO.input(enableofflinePos):
-            rospy.loginfo("VENT_EXPIRATORY: WARNING, servo disabled, skipping expiratory cycle.")
-            time.sleep(5)
-            return True
-
-        else:
-            rospy.loginfo("VENT_EXPIRATORY: ERROR, servo state UNKNOWN. This is a problem, can not proceed")
-            time.sleep(5)
-            return False
-
-    except:
-        rospy.loginfo("VENT_EXPIRATORY: ERROR, Servo drive cycle failed.")
-        time.sleep(5)
-        return False
-
-
-def vent_inspiratoryHold():
-    global inspiratory_hold
-
-    currentTime = rospy.get_rostime()
-    rospy.loginfo("VENT_INSPIRATORYHOLD: waiting before starting expiratory cycle, %s", inspiratory_hold)
-    time.sleep(inspiratory_hold)
-    rospy.loginfo("VENT_INSPIRATORYHOLD: hold complete.")
-
-    return True
-
-def vent_expiratoryHold():
-    global expiratory_hold
-
-    currentTime = rospy.get_rostime()
-    rospy.loginfo("VENT_EXPIRATORYHOLD: waiting before starting inspiratory cycle, %s", expiratory_hold)
-    time.sleep(expiratory_hold)
-    rospy.loginfo("VENT_EXPIRATORYHOLD: hold complete.")
-
-    return True
+        rospy.loginfo("SERVOCTL: EXCEPTION: request type: %s",req.type)
+        rospy.loginfo("SERVOCTL: EXCEPTION: Ignoring last request")
 
 def servo_ctl_server():
-    rospy.init_node('ventservo_server')
+    global ventservo_rtsrv_config
     rospy.Service('ventservo_srv_status', servostatus, handle_servoctl)
     rospy.Service('ventservo_srv_config', servoconfig, handle_servoctl)
     rospy.Service('ventservo_srv_state', servostate, handle_servoctl)
+    ventservo_rtsrv_config = rospy.ServiceProxy('ventservo_rtsrv_config', servort)
     rospy.loginfo("Ready to receive servo control requests.")
-    
+    while not (stop_threads):
+        time.sleep(1)
+
+    return
 
 def cleanup():
-    rospy.loginfo("Node shutdown and clean-up...")    
-    
+    global t_monitor_ventservort
+    global t_service_servoctl
+    global stop_threads
+
+    rospy.loginfo("Node shutdown and clean-up...")
+
+    # Stop Threads
+    rospy.loginfo("Stopping threads...")
+    stop_threads = True
+    t_monitor_ventservort.join()
+    t_service_servoctl.join()
+    t_report_cycles.join()
     rospy.loginfo("... Complete")
 
 def calcctlduration(ctlstart,ctlend):
@@ -253,37 +172,31 @@ def calcctlduration(ctlstart,ctlend):
     (ctlduration.secs,ctlduration.nsecs) = str(ctlduration.combined).split('.')
     return ctlduration
 
-def driveservo():
-    global vent_cycles 
-    global stop_threads
-
-    vent_cycles = 0
-    while not rospy.is_shutdown():
-        vent_inspiratory()
-        vent_inspiratoryHold()
-        vent_expiratory()
-        vent_expiratoryHold()
-        if not GPIO.input(enableofflinePos):
-            vent_cycles += 1
-        
-        if servo_state == 'disable' and not GPIO.input(enableofflinePos):
-            GPIO.output(enableofflinePos,GPIO.HIGH) 
-
-        elif servo_state == 'enable'and GPIO.input(enableofflinePos):
-            GPIO.output(enableofflinePos,GPIO.LOW)
-
-
-        rospy.loginfo("___ DRIVESERVO: Cycles completed: %s ___", vent_cycles)
-
-        if stop_threads:
+def report_cycles():
+    current_cycles = rt_cycles_complete
+    rospy.loginfo("___ Cycles completed: %s ___", current_cycles)
+    while (True):
+        #do something
+        if (rt_cycles_complete > current_cycles):
+            current_cycles = rt_cycles_complete
+            rospy.loginfo("___ Cycles completed: %s ___", current_cycles)
+        elif (stop_threads):
             break
-
-    return
-    
+        else:
+            time.sleep(.5)
 
 if __name__ == "__main__":
+    global t_monitor_ventservort
+    global t_service_servoctl
+    global t_report_cycles
+    nicevalue = os.nice(0)
+    rospy.loginfo("Setting Process NICE %s", nicevalue)
     rospy.on_shutdown(cleanup)
-    servo_ctl_server()
+    rospy.init_node('ventservo_server')
+    t_monitor_ventservort = threading.Thread(target=get_telemetry,name='ventservo_telemetry-monitor')
+    t_service_servoctl = threading.Thread(target=servo_ctl_server,name='ventservo_servoctl')
+    t_report_cycles = threading.Thread(target=report_cycles,name='ventservo_report-cycles')
+    t_monitor_ventservort.start()
+    t_service_servoctl.start()
+    t_report_cycles.start()
     rospy.spin()
-
-
